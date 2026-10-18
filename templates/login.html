@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('auth.login_title') }} · {{ t('app.name') }}{% endblock %}
+
+{% block body %}
+<div class="auth-shell">
+  <div class="auth-card panel">
+    {% include "_theme_btn.html" %}
+
+    <div class="auth-brand">
+      <span class="brand-mark"><i class="bi bi-check2-all"></i></span>
+      <div class="auth-brand-text">
+        <p class="auth-title">{{ t('auth.login_title') }}</p>
+        <p class="auth-sub">{{ t('app.name') }} · {{ t('app.tagline') }}</p>
+      </div>
+    </div>
+
+    {% include "_flashes.html" %}
+
+    <form method="post" action="{{ url_for('login') }}" novalidate>
+      <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+
+      <div class="mb-3">
+        <label class="form-label" for="username">{{ t('auth.username') }}</label>
+        <input class="form-control" id="username" name="username" type="text"
+               value="{{ username or '' }}" autocomplete="username"
+               maxlength="20" required autofocus>
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label" for="password">{{ t('auth.password') }}</label>
+        <input class="form-control" id="password" name="password" type="password"
+               autocomplete="current-password" maxlength="128" required>
+      </div>
+
+      <div class="form-check mb-3">
+        <input class="form-check-input" type="checkbox" id="remember" name="remember">
+        <label class="form-check-label" for="remember">{{ t('auth.remember_me') }}</label>
+        <div class="auth-hint">{{ t('auth.remember_hint') }}</div>
+      </div>
+
+      <button class="btn btn-brand w-100" type="submit">
+        <i class="bi bi-box-arrow-in-right me-1"></i> {{ t('auth.login_btn') }}
+      </button>
+    </form>
+
+    <p class="auth-switch">
+      {{ t('auth.no_account') }}
+      <a href="{{ url_for('register') }}">{{ t('auth.register_link') }}</a>
+    </p>
+
+    {% include "_lang_row.html" %}
+  </div>
+</div>
+{% endblock %}

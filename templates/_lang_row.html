@@ -1,0 +1,12 @@
+{# Hero paneli olmayan sayfalar (giriş/kayıt) için küçük dil seçimi #}
+<div class="lang-row">
+  {% set next_url = request.full_path.rstrip('?') %}
+  {% for code, label in locales.items() %}
+  <form method="post" action="{{ url_for('set_lang', code=code) }}">
+    <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    <button class="lang-row-btn{% if code == locale %} active{% endif %}"
+            type="submit" lang="{{ code }}" title="{{ label }}">{{ code|upper }}</button>
+  </form>
+  {% endfor %}
+</div>

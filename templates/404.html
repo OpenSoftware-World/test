@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('app.not_found_title') }} · {{ t('app.name') }}{% endblock %}
+
+{% block body %}
+<div class="error-shell">
+  <div class="error-card text-center">
+    <span class="error-code">404</span>
+    <h1 class="h4 mt-3 mb-2">{{ t('app.not_found_title') }}</h1>
+    <p class="text-secondary mb-4">{{ t('app.not_found_text') }}</p>
+    <a href="{{ url_for('index') }}" class="btn btn-brand px-4">
+      <i class="bi bi-arrow-left me-1"></i> {{ t('app.back_to_list') }}
+    </a>
+  </div>
+</div>
+{% endblock %}

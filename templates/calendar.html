@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('calendar.title') }} · {{ t('app.name') }}{% endblock %}
+
+{% block body %}
+<div class="calendar-shell">
+  <div class="panel cal-card">
+    {% include "_theme_btn.html" %}
+
+    <!-- Üst satır: başlık + ay/hafta görünüm anahtarı -->
+    <div class="cal-toolbar">
+      <div class="auth-brand">
+        <span class="brand-mark"><i class="bi bi-calendar3"></i></span>
+        <div class="auth-brand-text">
+          <p class="auth-title">{{ t('calendar.title') }}</p>
+          <p class="auth-sub">{{ t('calendar.select_hint') }}</p>
+        </div>
+      </div>
+
+      <div class="cal-toggle">
+        <a class="cal-toggle-btn{% if view == 'month' %} is-active{% endif %}"
+           href="{{ url_for('calendar', view='month', d=selected.isoformat()) }}">
+          <i class="bi bi-calendar-month"></i>{{ t('calendar.month_view') }}
+        </a>
+        <a class="cal-toggle-btn{% if view == 'week' %} is-active{% endif %}"
+           href="{{ url_for('calendar', view='week', d=selected.isoformat()) }}">
+          <i class="bi bi-calendar-week"></i>{{ t('calendar.week_view') }}
+        </a>
+      </div>
+    </div>
+
+    <!-- Dönem gezinme: ‹ dönem › + Bugün -->
+    <div class="cal-nav-row">
+      <a class="cal-nav" href="{{ url_for('calendar', view=view, d=prev_d) }}"
+         title="{{ t('calendar.prev') }}" aria-label="{{ t('calendar.prev') }}">
+        <i class="bi bi-chevron-left"></i>
+      </a>
+      <span class="cal-period">{{ period_label }}</span>
+      <a class="cal-nav" href="{{ url_for('calendar', view=view, d=next_d) }}"
+         title="{{ t('calendar.next') }}" aria-label="{{ t('calendar.next') }}">
+        <i class="bi bi-chevron-right"></i>
+      </a>
+      <a class="cal-today-btn" href="{{ url_for('calendar', view=view, d=today_.isoformat()) }}">
+        <i class="bi bi-dot"></i>{{ t('calendar.today') }}
+      </a>
+    </div>
+
+    {% include "_flashes.html" %}
+
+    <!-- Gün adları + ızgara/şerit -->
+    <div class="cal-weekdays">
+      {% for w in weekdays %}<span>{{ w }}</span>{% endfor %}
+    </div>
+
+    <div class="cal-grid{% if view == 'week' %} is-week{% endif %}">
+      {% for cell in cells %}
+      <div class="cal-day{% if cell.muted %} is-muted{% endif %}{% if cell.is_today %} is-today{% endif %}{% if cell.is_selected %} is-selected{% endif %}"
+           {% if not cell.muted %}data-href="{{ url_for('calendar', view=view, d=cell.iso) }}"{% endif %}>
+        {% if cell.muted %}
+          <span class="cal-daynum">{{ cell.num }}</span>
+        {% else %}
+          <div class="cal-dayhead">
+            <a class="cal-daynum" href="{{ url_for('calendar', view=view, d=cell.iso) }}">{{ cell.num }}</a>
+            {% if cell.is_today %}<span class="cal-today-badge">{{ t('calendar.today') }}</span>{% endif %}
+          </div>
+          <div class="cal-chips">
+            {% for task in cell.tasks[:3] %}
+            <button class="cal-chip prio-{{ task.priority }}" type="button"
+                    data-action="edit" data-id="{{ task.id }}"
+                    data-title="{{ task.title }}" data-desc="{{ task.description }}"
+                    data-due="{{ task.due_at or '' }}" data-priority="{{ task.priority }}"
+                    title="{{ t('task.edit') }} · {{ task.due_at[11:16] }}">
+              <span class="chip-time">{{ task.due_at[11:16] }}</span>
+              <span class="chip-title">{{ task.title }}</span>
+            </button>
+            {% endfor %}
+            {% if cell.more %}<span class="cal-more">+{{ cell.more }}</span>{% endif %}
+          </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Seçili gün paneli: günün görevleri + hızlı ekleme -->
+    <div class="cal-panel">
+      <div class="cal-panel-head">
+        <h3 class="cal-panel-title"><i class="bi bi-journal-check"></i>{{ t('calendar.day_tasks') }}</h3>
+        <span class="cal-panel-date">{{ selected_label }}</span>
+      </div>
+
+      {% if selected_tasks %}
+      <div class="cal-daylist">
+        {% for task in selected_tasks %}
+        <div class="cal-task prio-{{ task.priority }}">
+          <span class="cal-task-time">{{ task.due_at[11:16] }}</span>
+          <span class="cal-task-title">{{ task.title }}</span>
+          <span class="prio-tag prio-{{ task.priority }}">{{ t('priority.' ~ task.priority) }}</span>
+          <button class="act-btn act-edit" type="button" data-action="edit"
+                  data-id="{{ task.id }}" data-title="{{ task.title }}"
+                  data-desc="{{ task.description }}" data-due="{{ task.due_at or '' }}"
+                  data-priority="{{ task.priority }}" title="{{ t('task.edit') }}">
+            <i class="bi bi-pencil-square"></i>
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+      {% else %}
+      <p class="cal-empty"><i class="bi bi-calendar-x"></i>{{ t('calendar.empty_day') }}</p>
+      {% endif %}
+
+      <form class="cal-add" method="post" action="{{ url_for('add_task') }}">
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="next"
+               value="{{ url_for('calendar', view=view, d=selected.isoformat()) }}">
+        <input type="hidden" name="date" value="{{ selected.isoformat() }}">
+        <p class="cal-add-title"><i class="bi bi-plus-circle"></i>{{ t('calendar.add_for', date=selected_label) }}</p>
+        <div class="cal-add-row">
+          <input class="form-control" name="title" type="text" maxlength="200"
+                 placeholder="{{ t('form.title_label') }} *" required>
+          <input class="form-control cal-time" name="time" type="time" value="09:00"
+                 title="{{ t('calendar.time') }}" aria-label="{{ t('calendar.time') }}">
+          <select class="form-select" name="priority" aria-label="{{ t('form.priority_label') }}">
+            {% for p in (1, 2, 3, 4) %}
+            <option value="{{ p }}"{% if p == 2 %} selected{% endif %}>{{ t('priority.' ~ p) }}</option>
+            {% endfor %}
+          </select>
+          <button class="btn btn-brand" type="submit" title="{{ t('form.submit') }}">
+            <i class="bi bi-plus-lg"></i>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <p class="trash-foot">
+      <a href="{{ url_for('index') }}"><i class="bi bi-arrow-left"></i> {{ t('trash.back') }}</a>
+    </p>
+
+    {% include "_lang_row.html" %}
+  </div>
+</div>
+
+{% include "_edit_modal.html" %}
+{% endblock %}

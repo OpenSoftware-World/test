@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('trash.title') }} · {{ t('app.name') }}{% endblock %}
+
+{% block body %}
+<div class="trash-shell">
+  <div class="panel trash-card">
+    {% include "_theme_btn.html" %}
+
+    <div class="auth-brand">
+      <span class="brand-mark"><i class="bi bi-trash3"></i></span>
+      <div class="auth-brand-text">
+        <p class="auth-title">{{ t('trash.title') }}</p>
+        <p class="auth-sub" id="trash-subtitle">{{ t('trash.subtitle', n=deleted|length) }}</p>
+      </div>
+    </div>
+
+    {% include "_flashes.html" %}
+
+    {% if deleted %}
+    <div class="trash-list">
+      {% for task in deleted %}
+      <div class="trash-row" data-id="{{ task.id }}">
+        <div class="trash-info">
+          <p class="trash-title">{{ task.title }}</p>
+          <p class="trash-meta">
+            <i class="bi bi-clock-history"></i>
+            {{ t('trash.deleted_at') }} {{ task.deleted_at|format_date }}
+          </p>
+        </div>
+        <div class="trash-actions">
+          <form method="post" action="{{ url_for('restore_task', task_id=task.id) }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="trash-btn restore" type="submit" title="{{ t('trash.restore') }}">
+              <i class="bi bi-arrow-counterclockwise"></i><span>{{ t('trash.restore') }}</span>
+            </button>
+          </form>
+          <button class="trash-btn purge" type="button" data-action="trash"
+                  data-id="{{ task.id }}" data-title="{{ task.title }}"
+                  title="{{ t('trash.purge_btn') }}">
+            <i class="bi bi-x-octagon-fill"></i><span>{{ t('trash.purge_btn_short') }}</span>
+          </button>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-state trash-empty">
+      <span class="empty-icon"><i class="bi bi-trash"></i></span>
+      <h3>{{ t('trash.empty_title') }}</h3>
+      <p>{{ t('trash.empty_text') }}</p>
+    </div>
+    {% endif %}
+
+    <p class="trash-foot">
+      <a href="{{ url_for('index') }}"><i class="bi bi-arrow-left"></i> {{ t('trash.back') }}</a>
+    </p>
+
+    {% include "_lang_row.html" %}
+  </div>
+</div>
+
+{% include "_delete_modal.html" %}
+{% endblock %}

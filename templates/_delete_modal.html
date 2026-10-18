@@ -1,0 +1,49 @@
+{# Silme onay penceresi (index ve çöp kutusu sayfalarında ortak).
+   Varsayılan: çöp kutusuna taşıma (geri alınabilir).
+   "Kalıcı olarak sil" işaretlenirse uyarı + görev adını yazma istenir. #}
+<div class="modal fade" id="delete-modal" tabindex="-1" aria-labelledby="delete-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="delete-modal-title">
+          <i class="bi bi-exclamation-triangle-fill text-danger me-2"></i>{{ t('task.delete') }}
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <p class="mb-1 text-secondary">{{ t('trash.selected') }}</p>
+        <p class="fw-semibold mb-0" id="delete-task-title"></p>
+
+        <p class="trash-note" id="soft-hint">
+          <i class="bi bi-arrow-counterclockwise"></i> {{ t('trash.soft_hint') }}
+        </p>
+
+        <div class="form-check mt-3">
+          <input class="form-check-input" type="checkbox" id="purge-toggle">
+          <label class="form-check-label" for="purge-toggle">{{ t('trash.purge_option') }}</label>
+        </div>
+
+        <div class="purge-area" id="purge-area" hidden>
+          <div class="purge-warning">
+            <i class="bi bi-exclamation-octagon-fill"></i>
+            <span>{{ t('trash.irreversible') }}</span>
+          </div>
+          <label class="form-label mt-3 mb-1" for="purge-name">{{ t('trash.type_name') }}</label>
+          <input class="form-control" id="purge-name" type="text" autocomplete="off"
+                 placeholder="{{ t('trash.name_placeholder') }}">
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ t('modal.cancel') }}</button>
+        <button type="button" class="btn btn-brand" id="soft-delete-btn">
+          <i class="bi bi-trash3 me-1"></i>{{ t('trash.to_trash') }}
+        </button>
+        <button type="button" class="btn btn-danger" id="purge-confirm-btn" hidden disabled>
+          <i class="bi bi-x-octagon-fill me-1"></i>{{ t('trash.purge_btn') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

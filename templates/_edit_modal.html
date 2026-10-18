@@ -1,0 +1,58 @@
+{# Görev düzenleme penceresi (ana sayfa ve takvimde ortak) #}
+<div class="modal fade" id="edit-modal" tabindex="-1" aria-labelledby="edit-modal-title" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <form id="edit-form" method="post" action="" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="q" value="{{ query|default('') }}">
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="edit-modal-title">
+            <i class="bi bi-pencil-square text-primary me-2"></i>{{ t('task.edit_title') }}
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label" for="edit-title">{{ t('form.title_label') }} <span class="req">*</span></label>
+            <input class="form-control" id="edit-title" name="title" type="text"
+                   maxlength="200" required>
+            <div class="invalid-feedback" data-error-for="title"></div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label" for="edit-description">{{ t('form.desc_label') }}</label>
+            <textarea class="form-control" id="edit-description" name="description" rows="2"
+                      maxlength="2000"></textarea>
+            <div class="invalid-feedback" data-error-for="description"></div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-sm-7">
+              <label class="form-label" for="edit-due_at">{{ t('form.due_label') }}</label>
+              <input class="form-control" id="edit-due_at" name="due_at" type="datetime-local">
+              <div class="invalid-feedback" data-error-for="due_at"></div>
+            </div>
+            <div class="col-sm-5">
+              <label class="form-label" for="edit-priority">{{ t('form.priority_label') }}</label>
+              <select class="form-select" id="edit-priority" name="priority">
+                {% for p in (1, 2, 3, 4) %}
+                <option value="{{ p }}">{{ t('priority.' ~ p) }}</option>
+                {% endfor %}
+              </select>
+              <div class="invalid-feedback" data-error-for="priority"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-light" data-bs-dismiss="modal">{{ t('modal.cancel') }}</button>
+          <button type="submit" class="btn btn-brand" id="edit-submit">
+            <i class="bi bi-check-lg me-1"></i> {{ t('modal.save') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

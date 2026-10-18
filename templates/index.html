@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ t('app.page_title') }} · {{ t('app.name') }}{% endblock %}
+
+{% block body %}
+<div class="app-shell">
+
+  <!-- Sol panel: marka, özet, dil seçimi ve kısayollar -->
+  <aside class="hero-panel">
+    <div class="hero-glow hero-glow-a" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow-b" aria-hidden="true"></div>
+
+    <div class="hero-inner">
+      <div class="brand">
+        <span class="brand-mark"><i class="bi bi-check2-all"></i></span>
+        <div class="brand-text">
+          <p class="brand-name">{{ t('app.name') }}</p>
+          <p class="brand-sub">{{ t('app.tagline') }}</p>
+        </div>
+
+        <div class="brand-actions">
+          <button class="btn btn-lang btn-theme" type="button" id="theme-toggle"
+                  title="{{ t('theme.to_dark') }}" aria-label="{{ t('theme.to_dark') }}"
+                  aria-pressed="false">
+            <i class="bi bi-moon-stars"></i>
+          </button>
+
+          <div class="dropdown lang-dropdown">
+            <button class="btn btn-lang dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown" aria-expanded="false"
+                    title="{{ t('lang.label') }}" aria-label="{{ t('lang.label') }}">
+              <i class="bi bi-globe2"></i><span>{{ locale|upper }}</span>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end lang-menu">
+              {% for code, label in locales.items() %}
+              <li>
+                <form method="post" action="{{ url_for('set_lang', code=code) }}">
+                  <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+                  <input type="hidden" name="q" value="{{ query }}">
+                  <button class="dropdown-item{% if code == locale %} active{% endif %}"
+                          type="submit" lang="{{ code }}">
+                    {{ label }}<i class="bi bi-check2"></i>
+                  </button>
+                </form>
+              </li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num" id="stat-total">{{ stats.total }}</span>
+          <span class="stat-label">{{ t('stats.total') }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-active">{{ stats.active }}</span>
+          <span class="stat-label">{{ t('stats.active') }}</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="stat-done">{{ stats.done }}</span>
+          <span class="stat-label">{{ t('stats.done') }}</span>
+        </div>
+      </div>
+
+      <div class="hero-progress">
+        <div class="progress-head">
+          <span>{{ t('progress.label') }}</span>
+          <span id="progress-label">{{ stats.percent }}%</span>
+        </div>
+        <div class="progress-track">
+          <span id="progress-fill" style="width: {{ stats.percent }}%"></span>
+        </div>
+      </div>
+
+      <!-- İpuçları ve oturum profili birlikte panelin altında -->
+      <div class="hero-bottom">
+        <ul class="hero-hints">
+          <li><kbd>/</kbd> {{ t('hints.search') }}</li>
+          <li><kbd>Enter</kbd> {{ t('hints.enter') }}</li>
+          <li><i class="bi bi-hand-index-thumb"></i> {{ t('hints.click') }}</li>
+        </ul>
+
+        {% if current_user %}
+        <div class="hero-profile">
+          <span class="profile-avatar" aria-hidden="true">{{ current_user.username[0]|upper }}</span>
+          <span class="profile-name" title="{{ t('auth.logged_in_as', name=current_user.username) }}">{{ current_user.username }}</span>
+          <form method="post" action="{{ url_for('logout') }}">
+            <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+            <button class="profile-logout" type="submit"
+                    title="{{ t('auth.logout') }}" aria-label="{{ t('auth.logout') }}">
+              <i class="bi bi-box-arrow-right"></i>
+            </button>
+          </form>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sağ panel: arama, ekleme ve liste -->
+  <main class="content-panel">
+
+    {% include "_flashes.html" %}
+
+    <header class="page-head">
+      <div>
+        <h1 class="page-title">{{ t('app.page_title') }}</h1>
+        <p class="page-sub">{{ t('app.page_sub') }}</p>
+      </div>
+
+      <form class="search-box{% if query %} has-query{% endif %}" role="search"
+            action="{{ url_for('index') }}" method="get" id="search-form">
+        <i class="bi bi-search search-icon" aria-hidden="true"></i>
+        <input type="search" name="q" id="search-input" value="{{ query }}"
+               placeholder="{{ t('search.placeholder') }}" autocomplete="off"
+               aria-label="{{ t('search.clear') }}">
+        <button type="button" class="search-clear" id="search-clear" aria-label="{{ t('search.clear') }}">
+          <i class="bi bi-x-lg"></i>
+        </button>
+        <kbd class="search-kbd" aria-hidden="true">/</kbd>
+      </form>
+    </header>
+
+    <section class="panel add-card">
+      <h2 class="panel-title"><i class="bi bi-plus-square me-2"></i>{{ t('form.new_task') }}</h2>
+      <form id="add-form" action="{{ url_for('add_task') }}" method="post" novalidate>
+        <input type="hidden" name="_csrf" value="{{ csrf_token() }}">
+        <input type="hidden" name="q" value="{{ query }}">
+
+        <div class="mb-3">
+          <label for="title" class="form-label">{{ t('form.title_label') }} <span class="req">*</span></label>
+          <input class="form-control" id="title" name="title" type="text"
+                 placeholder="{{ t('form.title_placeholder') }}" maxlength="200" required autofocus>
+          <div class="invalid-feedback" data-error-for="title"></div>
+        </div>
+
+        <div class="mb-3">
+          <label for="description" class="form-label">
+            {{ t('form.desc_label') }} <span class="text-secondary small">{{ t('form.desc_optional') }}</span>
+          </label>
+          <textarea class="form-control" id="description" name="description" rows="2"
+                    maxlength="2000" placeholder="{{ t('form.desc_placeholder') }}"></textarea>
+          <div class="invalid-feedback" data-error-for="description"></div>
+        </div>
+
+        <div class="row g-2 mb-3">
+          <div class="col-sm-7">
+            <label for="due_at" class="form-label">
+              {{ t('form.due_label') }} <span class="text-secondary small">{{ t('form.desc_optional') }}</span>
+            </label>
+            <input class="form-control" id="due_at" name="due_at" type="datetime-local">
+            <div class="invalid-feedback" data-error-for="due_at"></div>
+          </div>
+          <div class="col-sm-5">
+            <label for="priority" class="form-label">{{ t('form.priority_label') }}</label>
+            <select class="form-select" id="priority" name="priority">
+              {% for p in (1, 2, 3, 4) %}
+              <option value="{{ p }}"{% if p == 2 %} selected{% endif %}>{{ t('priority.' ~ p) }}</option>
+              {% endfor %}
+            </select>
+            <div class="invalid-feedback" data-error-for="priority"></div>
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center justify-content-between gap-2 flex-wrap">
+          <span class="hint-text"><i class="bi bi-lightbulb me-1"></i>{{ t('form.hint') }}</span>
+          <button class="btn btn-brand px-4" type="submit" id="add-submit">
+            <i class="bi bi-plus-lg me-1"></i> {{ t('form.submit') }}
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section class="list-wrap" id="task-list" aria-live="polite">
+      {% include "task_list.html" %}
+    </section>
+  </main>
+</div>
+
+<!-- Silme onay penceresi (çöp kutusu akışı, ortak parça) -->
+{% include "_delete_modal.html" %}
+
+<!-- Görev düzenleme penceresi (ortak parça) -->
+{% include "_edit_modal.html" %}
+{% endblock %}

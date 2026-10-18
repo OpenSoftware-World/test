@@ -1,0 +1,106 @@
+{# Görev listesi parçası: hem ana sayfada hem de JS aramasıyla (fragment=1) kullanılır #}
+<div class="list-head">
+  <div class="list-head-row">
+    <h2 class="list-title">
+      {% if query %}{{ t('list.results') }}{% else %}{{ t('list.all') }}{% endif %}
+      <span class="count-badge" id="result-count">{{ tasks|length }}</span>
+    </h2>
+
+    <a class="trash-link cal-link" href="{{ url_for('calendar') }}" title="{{ t('calendar.title') }}">
+      <i class="bi bi-calendar3"></i>
+      <span class="trash-link-label">{{ t('calendar.title') }}</span>
+    </a>
+
+    <a class="trash-link{% if not trash_count %} is-empty{% endif %}"
+       href="{{ url_for('trash') }}" title="{{ t('trash.title') }}">
+      <i class="bi bi-trash3"></i>
+      <span class="trash-link-label">{{ t('trash.title') }}</span>
+      <span class="count-badge" id="trash-count" {% if not trash_count %}hidden{% endif %}>{{ trash_count }}</span>
+    </a>
+  </div>
+  {% if query %}
+    <p class="list-note">
+      {{ t('list.results_for', q=query, n=tasks|length) }}
+      <a href="{{ url_for('index') }}" class="note-link" id="clear-search-link">{{ t('list.clear') }}</a>
+    </p>
+  {% else %}
+    <p class="list-note">{{ t('list.note', active=stats.active, done=stats.done) }}</p>
+  {% endif %}
+</div>
+
+{% if tasks %}
+  {% for task in tasks %}
+  {% set overdue = task.due_at and not task.done and task.due_at < now() %}
+  <article class="task-card prio-{{ task.priority }}{% if task.done %} is-done{% endif %}"
+           data-id="{{ task.id }}" data-title="{{ task.title }}"
+           data-desc="{{ task.description }}" data-due="{{ task.due_at or '' }}"
+           data-priority="{{ task.priority }}">
+    <button class="task-check" type="button" data-action="toggle" data-id="{{ task.id }}"
+            aria-pressed="{{ 'true' if task.done else 'false' }}"
+            title="{{ t('task.toggle_done') if not task.done else t('task.toggle_undo') }}">
+      <i class="bi bi-check-lg"></i>
+    </button>
+
+    <div class="task-body">
+      <div class="task-tags">
+        <span class="prio-tag prio-{{ task.priority }}">
+          <span class="prio-dot" aria-hidden="true"></span>{{ t('priority.' ~ task.priority) }}
+        </span>
+        {% if task.due_at %}
+        <span class="due-tag{% if overdue %} is-overdue{% endif %}">
+          <i class="bi bi-calendar-event"></i>{{ task.due_at|format_date }}
+          {%- if overdue %} · {{ t('task.overdue') }}{% endif %}
+        </span>
+        {% endif %}
+      </div>
+
+      <h3 class="task-title">{{ task.title }}</h3>
+      {% if task.description %}
+        <p class="task-desc">{{ task.description }}</p>
+      {% endif %}
+      <div class="task-meta">
+        <span><i class="bi bi-calendar3"></i> {{ task.created_at|format_date }}</span>
+        <span class="done-meta" {% if not task.done or not task.completed_at %}hidden{% endif %}>
+          <i class="bi bi-check2-circle"></i>
+          <span class="done-meta-text">{{ t('task.completed_at') }} {{ task.completed_at|format_date }}</span>
+        </span>
+      </div>
+    </div>
+
+    <div class="task-actions">
+      <button class="act-btn act-toggle" type="button" data-action="toggle" data-id="{{ task.id }}">
+        <i class="bi {{ 'bi-arrow-counterclockwise' if task.done else 'bi-check-circle' }}"></i>
+        <span class="act-label">{{ t('task.undo') if task.done else t('task.complete') }}</span>
+      </button>
+      <button class="act-btn act-edit" type="button" data-action="edit"
+              data-id="{{ task.id }}" title="{{ t('task.edit') }}">
+        <i class="bi bi-pencil-square"></i>
+      </button>
+      <button class="act-btn act-delete" type="button" data-action="delete"
+              data-id="{{ task.id }}" data-title="{{ task.title }}" title="{{ t('task.delete') }}">
+        <i class="bi bi-trash3"></i>
+      </button>
+    </div>
+  </article>
+  {% endfor %}
+
+{% else %}
+  <div class="empty-state">
+    <span class="empty-icon">
+      <i class="bi bi-{{ 'search' if query else 'clipboard2-plus' }}"></i>
+    </span>
+    {% if query %}
+      <h3>{{ t('empty.no_results_title') }}</h3>
+      <p>{{ t('empty.no_results_text', q=query) }}</p>
+      <button type="button" class="btn btn-brand btn-sm px-3" data-action="reset-search">
+        {{ t('search.clear') }}
+      </button>
+    {% else %}
+      <h3>{{ t('empty.first_title') }}</h3>
+      <p>{{ t('empty.first_text') }}</p>
+      <button type="button" class="btn btn-brand btn-sm px-3" data-action="focus-add">
+        <i class="bi bi-plus-lg me-1"></i> {{ t('form.submit') }}
+      </button>
+    {% endif %}
+  </div>
+{% endif %}
